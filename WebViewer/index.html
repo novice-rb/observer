@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Civilization Web Observer</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <style>
+        @import "{{baseUrl}}dojox/grid/enhanced/resources/claro/EnhancedGrid.css";
+        @import "{{baseUrl}}dojox/grid/enhanced/resources/EnhancedGrid_rtl.css";
+        html, body
+        {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map
+        {
+            padding: 0;
+        }
+        #techGrid {
+            width: 780px;
+            height: 560px;
+        }
+        .menuLink {
+            text-decoration: underline;
+            color: blue;
+            cursor: pointer;
+        }
+        .menuLinkHover {
+            font-weight: bold;
+        }
+        .header {
+            font-weight: bold;
+            padding-bottom: 0.2em;
+        }
+        .panel {
+            border-style: groove;
+        }
+        .panelList {
+            overflow: auto;
+        }
+        #cityBuildingList {
+            height: 200px;
+        }
+        .buildingIcon, .promotionIcon {
+            height: 17px;
+        }
+    </style>
+    <script>        var dojoConfig = { parseOnLoad: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script src="js/xml.js"></script>
+    <script src="js/texts.js"></script>
+    <script src="js/EmptyLayer.js"></script>
+    <script src="js/Game.js"></script>
+    <script src="js/Map.js"></script>
+    <script src="js/App.js"></script>
+    <script src="js/init.js"></script>
+</head>
+<body class="claro">
+    <div id="busyIndicator" data-dojo-type="dojox.widget.Standby" data-dojo-props="target:'mainDiv'"></div>
+    <div id="mainDiv" data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false"
+        style="width: 100%; height: 100%; margin: 0;">
+        <div id="menuBar" style="height: 20px; border-bottom: 1px solid black" data-dojo-type="dijit.layout.ContentPane"
+            data-dojo-props="region:'top'">
+            <span id="menuOpenGame">Open another game</span>
+            <span id="menuTechnologies">Technology screen</span>
+        </div>
+        <div id="topBar" style="height: 100px; border-bottom: 1px solid black" data-dojo-type="dijit.layout.ContentPane"
+            data-dojo-props="region:'top'">
+            <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false"
+                style="width: 100%; margin: 0;">
+                <div id="playerPanel" style="width: 250px;height: 80px;" data-dojo-type="dijit.layout.ContentPane"
+                    data-dojo-props="region:'left'">
+                    <div id="playerCommercePanel" style="display: none;">
+                    <span id="playerBeakers">Science: ?%: +? bpt</span><br />
+                    <span id="playerGold">Tax: ?%: +? gpt</span><br />
+                    <span id="playerCultureSlider">Culture: ?%: +? cpt</span><br />
+                    <span id="playerEPs">Espionage: ?%: +? ept</span></div>
+                </div>
+                <div id="researchPanel" style="text-align: center;" data-dojo-type="dijit.layout.ContentPane"
+                    data-dojo-props="region:'center'">
+                    <span>Player perspective:</span> <select id="selectPerspective" maxHeight="200" style="width: 250px;" data-dojo-type="dijit.form.Select">
+                        <option value="All" selected="selected">Omniscient</option>
+                    </select><div style="display: none;" id="playerResearch">Research:</div>
+                </div>
+                <div id="turnPanel" style="width: 250px;height: 80px;overflow:hidden;text-align: right;" data-dojo-type="dijit.layout.ContentPane"
+                    data-dojo-props="region:'right'">
+                    <nobr><span id="currentGame"></span></nobr>
+                    <br />
+                    <button data-dojo-type="dijit.form.Button" id="btnPrevTurn">&nbsp;&lt;&nbsp;</button>
+                    <select id="selectGameTurn" maxHeight="200" style="width: 80px;" data-dojo-type="dijit.form.Select">
+                        <option value="0" selected="selected">Turn: 0</option>
+                    </select>
+                    <button data-dojo-type="dijit.form.Button" id="btnNextTurn">&nbsp;&gt;&nbsp;</button>
+                    <br /><span id="gameYear"></span>
+                </div>
+            </div>
+        </div>
+        <div id="map" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'">
+        </div>
+        <div id="tools" style="width: 400px; border-left: 1px solid black" data-dojo-type="dijit.layout.ContentPane"
+            data-dojo-props="region:'right'">
+            <div>
+                Map navigation:<br />
+                Mouse over the map for tile info. Click and drag to pan the map. Zoom with the zoom
+                buttons or with the scroll wheel on your mouse. Hold shift and drag a rectangle
+                to zoom to an area. Double click a tile to zoom in on it. Double click a city tile to open the city screen.
+            </div>
+            <br />
+            <input id="chkTerrain" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked" />
+            <label for="chkTerrain">
+                Show terrain</label><br />
+            <input id="chkPlotTypes" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked"  />
+            <label for="chkPlotTypes">
+                Show hills and peaks</label><br />
+            <input id="chkFeatures" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked"  />
+            <label for="chkFeatures">
+                Show features (Forests, jungle, etc.)</label><br />
+            <input id="chkResources" data-dojo-type="dijit.form.CheckBox" value="visible" />
+            <label for="chkResources">
+                Show resources</label><br />
+            <input id="chkImprovements" data-dojo-type="dijit.form.CheckBox" value="visible" />
+            <label for="chkImprovements">
+                Show improvements</label><br />
+            <input id="chkCulture" data-dojo-type="dijit.form.CheckBox" value="visible" />
+            <label for="chkCulture">
+                Show culture</label><br />
+            <input id="chkCities" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked" />
+            <label for="chkCities">
+                Show cities</label><br />
+            <input id="chkRivers" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked" />
+            <label for="chkRivers">
+                Show rivers</label><br />
+            <input id="chkFogOfWar" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked" />
+            <label for="chkFogOfWar">
+                Show fog of war</label><br />
+            <input id="chkRoads" data-dojo-type="dijit.form.CheckBox" value="visible" checked="checked" />
+            <label for="chkRoads">
+                Show roads</label><br />
+            <input id="chkUnits" data-dojo-type="dijit.form.CheckBox" value="visible" />
+            <label for="chkUnits">
+                Show units</label><br />
+        </div>
+        <div id="mouseOver" style="width: 300px; border-right: 1px solid black" data-dojo-type="dijit.layout.ContentPane"
+            data-dojo-props="region:'left'">
+            <div>
+                <div id="hoverTip">Click the map to freeze the tile info.</div>
+                <div id="tileInfo">
+                </div>
+                <div id="unitList">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-dojo-type="dijit/Dialog" data-dojo-id="cityScreen" title="City screen">
+        <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false"
+            style="width: 800px; height: 600px; margin: 0;">
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'left'">
+                <div class="panel" id="cityCommerce">
+                    <div class="header">Commerce:</div>
+                    <span id="cityBeakers">Science: ?%: +? bpt</span><br />
+                    <span id="cityGold">Tax: ?%: +? gpt</span><br />
+                    <span id="cityCultureSlider">Culture: ?%: +? cpt</span><br />
+                    <span id="cityEPs">Espionage: ?%: +? ept</span><br />
+                    <span id="cityMaintenance">Maintenance: -? gpt</span>
+                </div>
+                <div class="panel" id="cityTradeRoutes">
+                    <div class="header">Trade routes:</div>
+                </div>
+                <div class="panel" id="cityBuildings">
+                    <div class="header">Buildings:</div>
+                    <div id="cityBuildingList" class="panelList">
+
+                    </div>
+                </div>
+                <div class="panel" id="cityCulture">
+                    <div class="header">Culture:</div>
+                    <span id="cityCpt">+? cpt</span><br />
+                    <span id="cityCurrentCulture">?/? culture (influential?)</span>
+                </div>
+                <div class="panel" id="cityBuildQueue">
+                    <div class="header">Build queue:</div>
+                </div>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'">
+                <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false" style="margin: 0;">
+                    <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'top'" style="text-align: center;">
+                        <span id="cityFood">Food: ?/?</span><br />
+                        <span id="cityHammers">Hammers: ?/?</span><br />
+                    </div>
+                    <div id="cityMap" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'">
+                    </div>
+                    <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'bottom'">
+                        <button dojotype="dijit.form.Button" type="button" onclick="cityScreen.onCancel();"
+                            id="cancel">
+                            Close</button>
+                    </div>
+                </div>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'right'">
+                <div id="Div1">
+                    Health and happiness:<br />
+                    <span id="Span1">Health:</span><br />
+                    <span id="Span2">Happy:</span><br />
+                </div>
+                <div id="Div2">
+                    Religions:</div>
+                <div id="Div3">
+                    Specialists:</div>
+            </div>
+        </div>
+    </div>
+    <div data-dojo-type="dijit/Dialog" data-dojo-id="techScreen" title="Technology overview">
+        <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false"
+            style="width: 810px; height: 630px; margin: 0;">
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'" style="text-align: center;">
+                <div id="techGridDiv"></div>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'bottom'" style="text-align: center;">
+                <button dojotype="dijit.form.Button" type="button" onclick="techScreen.onCancel();" id="Button2">Close</button>
+            </div>
+        </div>
+    </div>
+    <div data-dojo-type="dijit/Dialog" data-dojo-id="openGameDialog" title="Choose a game to observe">
+        <div data-dojo-type="dijit.layout.BorderContainer" data-dojo-props="design:'headline', gutters:false"
+            style="width: 400px; height: 200px; margin: 0;">
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'" style="text-align: center;">
+                <span id="Span3">Choose a game to observe:</span><br />
+                <select id="selectGame" maxHeight="140" style="width: 350px;" data-dojo-type="dijit.form.Select">
+                    <option value="none" selected="selected">Populating game list...</option>
+                </select>
+            </div>
+            <div data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'bottom'" style="text-align: center;">
+                <button dojotype="dijit.form.Button" type="button" disabled="true" onclick="app.openSelectedGame();"
+                    id="btnOpenGame">
+                    Open game</button>
+                <button dojotype="dijit.form.Button" type="button" disabled="true" onclick="openGameDialog.onCancel();"
+                    id="btnCancelOpenGame">
+                    Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

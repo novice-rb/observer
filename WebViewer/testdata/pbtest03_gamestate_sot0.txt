@@ -1,0 +1,4 @@
+{"players": [], "game": {"startEra": 0, "name": "pbtest03", "playerCount": 0, "isPbem": false, "isPitbossHost": true, "isCircumnavigated": false, "turn": 0, "year": -4000, "speed": 2, "isPitboss": true}
+, "map": {"worldSize": 0, "height": 0, "width": 0, "isWrapY": false, "isWrapX": false, "plots": []}
+}
+

@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Web
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebViewer", "..\WebViewer", "{27BD5BF6-42B7-4A93-965E-2A96FF74D04A}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
+		Debug.AspNetCompiler.VirtualPath = "/WebViewer"
+		Debug.AspNetCompiler.PhysicalPath = "..\WebViewer\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\WebViewer\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/WebViewer"
+		Release.AspNetCompiler.PhysicalPath = "..\WebViewer\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\WebViewer\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "62237"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{27BD5BF6-42B7-4A93-965E-2A96FF74D04A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27BD5BF6-42B7-4A93-965E-2A96FF74D04A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
